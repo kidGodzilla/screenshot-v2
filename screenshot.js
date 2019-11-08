@@ -6,7 +6,7 @@ const querystring = require('querystring');
 const { getScreenshot } = require('./chromium');
 const { getInt, getUrlFromPath, isValidUrl } = require('./validator');
 
-const { BUNNY_STORAGE_API_KEY, BUNNY_API_KEY } = process.env;
+let { BUNNY_STORAGE_API_KEY, BUNNY_API_KEY } = process.env;
 const CDN_URL = 'https://sshots.b-cdn.net';
 const BUCKET_NAME = 'sshots';
 const DEFAULT_PATH = '/';
@@ -70,25 +70,20 @@ module.exports = async function (req, res) {
             var exists = await urlExists(CDN_URL + '/' + filename);
 
             if (exists) {
-
                 // Redirect to the image
                 res.writeHead(301, { Location: CDN_URL + '/' + filename });
                 res.end();
 
             } else {
-
                 // Take a screenshot
                 const file = await getScreenshot(url, type, qual, fullPage, viewport, wait);
 
-                putFile(BUCKET_NAME, filename, file, (ress) => {
+                putFile(BUCKET_NAME, '/' + filename, file, (ress) => {
                     res.statusCode = 200;
                     res.setHeader('Content-Type', `image/${type}`);
                     res.end(file);
                 });
-
             }
-
-
         }
     } catch (e) {
         res.statusCode = 500;
