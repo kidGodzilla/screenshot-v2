@@ -6,18 +6,16 @@ const querystring = require('querystring');
 const { getScreenshot } = require('./chromium');
 const { getInt, getUrlFromPath, isValidUrl } = require('./validator');
 
-let { BUNNY_STORAGE_API_KEY, BUNNY_API_KEY } = process.env;
+let { BUNNY_STORAGE_API_KEY } = process.env;
 const CDN_URL = 'https://sshots.b-cdn.net';
 const BUCKET_NAME = 'sshots';
-const DEFAULT_PATH = '/';
 
-// console.log('Keyvar:', BUNNY_STORAGE_API_KEY.length, BUNNY_API_KEY.length);
+// console.log('Keyvar:', BUNNY_STORAGE_API_KEY.length);
 
 let TTL = 3 * 24 * 60 * 60 * 1000; // Three days
 
 // Put a file in the bunny CDN
 function putFile (bucket, fn, file, cb) {
-
     let url = 'https://storage.bunnycdn.com/' + bucket + fn;
     if (!file) file = '0';
 
