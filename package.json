@@ -17,6 +17,8 @@
     "chrome-aws-lambda": "1.11.1",
     "md5": "^2.2.1",
     "puppeteer-core": "1.11.0",
-    "request": "^2.88.0"
+    "request": "^2.88.0",
+    "url-exists": "^1.0.3",
+    "url-exists-async-await": "^1.0.0"
   }
 }

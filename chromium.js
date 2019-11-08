@@ -10,7 +10,7 @@ async function getScreenshot(url, type, quality, fullPage, viewport, wait) {
 
     const page = await browser.newPage();
     if (viewport) await page.setViewport(viewport);
-    console.log('Taking a shot of:', url);
+    // console.log('Taking a shot of:', url);
     await page.goto(url, { timeout: 10000 });
     if (wait) await page.waitFor(parseInt(wait) * 1000);
 

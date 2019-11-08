@@ -1,5 +1,7 @@
 const md5 = require('md5');
 const { parse } = require('url');
+const request = require('request');
+const urlExists = require('url-exists-async-await');
 const querystring = require('querystring');
 const { getScreenshot } = require('./chromium');
 const { getInt, getUrlFromPath, isValidUrl } = require('./validator');
@@ -8,6 +10,8 @@ const { BUNNY_STORAGE_API_KEY, BUNNY_API_KEY } = process.env;
 const CDN_URL = 'https://sshots.b-cdn.net';
 const BUCKET_NAME = 'sshots';
 const DEFAULT_PATH = '/';
+
+// console.log('Keyvar:', BUNNY_STORAGE_API_KEY.length, BUNNY_API_KEY.length);
 
 let TTL = 3 * 24 * 60 * 60 * 1000; // Three days
 
@@ -62,15 +66,29 @@ module.exports = async function (req, res) {
             var filename = requestMd5 + '-' + ts + '.' + type;
             console.log('Expected cached filename:', filename);
 
-            // Todo: Check to see if the filename exists at -- CDN_URL + '/' + filename
+            // Check to see if the filename exists at -- CDN_URL + '/' + filename
+            var exists = await urlExists(CDN_URL + '/' + filename);
 
-            const file = await getScreenshot(url, type, qual, fullPage, viewport, wait);
+            if (exists) {
 
-            putFile(BUCKET_NAME, filename, file, (ress) => {});
+                // Redirect to the image
+                res.writeHead(301, { Location: CDN_URL + '/' + filename });
+                res.end();
 
-            res.statusCode = 200;
-            res.setHeader('Content-Type', `image/${type}`);
-            res.end(file);
+            } else {
+
+                // Take a screenshot
+                const file = await getScreenshot(url, type, qual, fullPage, viewport, wait);
+
+                putFile(BUCKET_NAME, filename, file, (ress) => {
+                    res.statusCode = 200;
+                    res.setHeader('Content-Type', `image/${type}`);
+                    res.end(file);
+                });
+
+            }
+
+
         }
     } catch (e) {
         res.statusCode = 500;
