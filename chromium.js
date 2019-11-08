@@ -1,7 +1,7 @@
 const chrome = require('chrome-aws-lambda');
 const puppeteer = require('puppeteer-core');
 
-async function getScreenshot(url, type, quality, fullPage) {
+async function getScreenshot(url, type, quality, fullPage, viewport, wait) {
     const browser = await puppeteer.launch({
         args: chrome.args,
         executablePath: await chrome.executablePath,
@@ -9,9 +9,10 @@ async function getScreenshot(url, type, quality, fullPage) {
     });
 
     const page = await browser.newPage();
-    // await page.setViewport(viewport)
+    if (viewport) await page.setViewport(viewport);
+    console.log('Taking a shot of:', url);
     await page.goto(url, { timeout: 10000 });
-    await page.waitFor(4000);
+    if (wait) await page.waitFor(parseInt(wait) * 1000);
 
     const file = await page.screenshot({ type,  quality, fullPage });
     await browser.close();
