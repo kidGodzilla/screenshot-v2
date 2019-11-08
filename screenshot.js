@@ -25,6 +25,7 @@ function putFile (bucket, fn, file, cb) {
     }, (error, response, body) => {
         if (cb && typeof cb == 'function') cb({
             status: response.statusCode,
+            headers: response.headers,
             body: body
         });
     });
