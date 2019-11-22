@@ -33,7 +33,10 @@ function putFile (bucket, fn, file, cb) {
 
 // Purge a specific URL from Bunny CDN
 function purgeUrl (url, cb) {
-    if (!BUNNY_API_KEY || !url) return;
+    if (!BUNNY_API_KEY || !url) {
+        if (cb && typeof cb == 'function') cb();
+        return;
+    }
     request({
         method: 'POST',
         url: 'https://bunnycdn.com/api/purge?url=' + encodeURIComponent(url),
@@ -78,6 +81,8 @@ module.exports = async function (req, res) {
 
             // Check for a CDN cache
             const ts = Math.floor((+ new Date) / TTL); // TTL-unique slug
+            url = url.replace('&cache=false', '');
+
             const requestMd5 = md5(url); // md5 of request string
             const filename = requestMd5 + '-' + ts + '.' + type;
 
@@ -96,12 +101,12 @@ module.exports = async function (req, res) {
                 // Take a screenshot
                 const file = await getScreenshot(url, type, qual, fullPage, viewport, wait);
 
-                purgeUrl(CDN_URL + '/' + filename);
-
-                putFile(BUCKET_NAME, '/' + filename, file, (ress) => {
-                    res.statusCode = 200;
-                    res.setHeader('Content-Type', `image/${type}`);
-                    res.end(file);
+                purgeUrl(CDN_URL + '/' + filename, function () {
+                    putFile(BUCKET_NAME, '/' + filename, file, (ress) => {
+                        res.statusCode = 200;
+                        res.setHeader('Content-Type', `image/${type}`);
+                        res.end(file);
+                    });
                 });
             }
         }
