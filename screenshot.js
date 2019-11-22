@@ -7,7 +7,7 @@ const urlExists = require('url-exists-async-await');
 const { getInt, getUrlFromPath, isValidUrl } = require('./validator');
 
 let { BUNNY_STORAGE_API_KEY, BUNNY_API_KEY, TTL } = process.env;
-if (!TTL) TTL = 3 * 24 * 60 * 60 * 1000; // Three days
+if (!TTL) TTL = 24 * 60 * 60 * 1000; // One day
 const CDN_URL = 'https://sshots.b-cdn.net';
 const BUCKET_NAME = 'sshots';
 
