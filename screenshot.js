@@ -6,10 +6,11 @@ const { getScreenshot } = require('./chromium');
 const urlExists = require('url-exists-async-await');
 const { getInt, getUrlFromPath, isValidUrl } = require('./validator');
 
-let { BUNNY_STORAGE_API_KEY, TTL } = process.env;
+let { BUNNY_STORAGE_API_KEY, BUNNY_API_KEY, TTL } = process.env;
 if (!TTL) TTL = 3 * 24 * 60 * 60 * 1000; // Three days
 const CDN_URL = 'https://sshots.b-cdn.net';
 const BUCKET_NAME = 'sshots';
+
 
 // Put a file in the Bunny CDN
 function putFile (bucket, fn, file, cb) {
@@ -29,6 +30,26 @@ function putFile (bucket, fn, file, cb) {
         });
     });
 }
+
+// Purge a specific URL from Bunny CDN
+function purgeUrl (url, cb) {
+    if (!BUNNY_API_KEY || !url) return;
+    request({
+        method: 'POST',
+        url: 'https://bunnycdn.com/api/purge?url=' + encodeURIComponent(url),
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'AccessKey': BUNNY_API_KEY
+        }}, function (error, response, body) {
+        if (cb && typeof cb == 'function') cb({
+            status: response.statusCode,
+            headers: response.headers,
+            body: body
+        });
+    });
+}
+
 
 module.exports = async function (req, res) {
     try {
@@ -74,6 +95,8 @@ module.exports = async function (req, res) {
             } else {
                 // Take a screenshot
                 const file = await getScreenshot(url, type, qual, fullPage, viewport, wait);
+
+                purgeUrl(CDN_URL + '/' + filename);
 
                 putFile(BUCKET_NAME, '/' + filename, file, (ress) => {
                     res.statusCode = 200;
